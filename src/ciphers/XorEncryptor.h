@@ -18,7 +18,6 @@ public:
     }
 
     bool decrypt(const std::filesystem::path& inputFile, const std::filesystem::path& outputFile, const std::string& key) const override {
-        // La operación de cifrado y descifrado XOR es idéntica.
         return processFile(inputFile, outputFile, key);
     }
 

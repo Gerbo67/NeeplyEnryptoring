@@ -1,12 +1,5 @@
 #pragma once
 
-#include <iostream>
-#include <vector>
-#include <deque>
-#include <string>
-#include <filesystem>
-#include <memory>
-
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/screen_interactive.hpp"
 #include "ftxui/dom/elements.hpp"
@@ -35,7 +28,17 @@ public:
     {
         using namespace ftxui;
 
-        auto password_input = Input(&password_, "Escribe tu clave aquí");
+        std::string placeholder_text = "Escribe tu clave aquí";
+        auto password_input = Input(&password_, &placeholder_text);
+
+
+        const std::vector<std::string> password_placeholders = {
+            "Cualquier caracter (ej: pass123)", // XOR
+            "Cualquier caracter (ej: mi_clave)", // DES
+            "Solo números (ej: 13)", // Cesar
+            "Solo letras (ej: SECRETO)", // Vigenere
+            "No requiere clave" // Binary
+        };
 
         auto encrypt_button = Button(" Cifrar ", [&] { ProcessFiles(true); }, ButtonOption::Animated(Color::Green));
         auto decrypt_button = Button(" Descifrar ", [&] { ProcessFiles(false); }, ButtonOption::Animated(Color::Red));
@@ -46,12 +49,25 @@ public:
         };
         auto algorithm_radiobox = Radiobox(&algorithm_entries, &selected_algorithm_);
 
-        auto main_container = Container::Vertical({});
+        auto main_container = Container::Vertical({
+            password_input,
+            algorithm_radiobox,
+            encrypt_button,
+            decrypt_button,
+            refresh_button
+        });
 
         auto final_component = Renderer(main_container, [&]
         {
-            main_container->DetachAllChildren();
+            placeholder_text = password_placeholders[selected_algorithm_];
 
+            auto password_renderer = password_input->Render();
+            if (selected_algorithm_ == 4)
+            {
+                password_renderer = password_renderer | dim;
+            }
+
+            main_container->DetachAllChildren();
             auto txt_container = Container::Vertical({});
             for (size_t i = 0; i < txt_files_.size(); ++i)
             {
@@ -72,6 +88,7 @@ public:
             main_container->Add(txt_container);
             main_container->Add(cif_container);
 
+
             auto layout = vbox({
                 text("🔐 ENCRYPTOR TUI 🔐") | bold | color(Color::Cyan) | hcenter,
                 separatorLight(),
@@ -90,7 +107,7 @@ public:
                         window(text(" Controles ") | bold,
                                vbox({
                                    text("Clave:") | color(Color::Yellow),
-                                   password_input->Render(),
+                                   password_renderer, // Usamos la versión renderizada
                                    separator(),
                                    text("Algoritmo:") | color(Color::Yellow),
                                    algorithm_radiobox->Render() | hcenter,
