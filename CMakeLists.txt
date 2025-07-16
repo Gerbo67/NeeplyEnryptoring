@@ -25,7 +25,11 @@ endif()
 find_package(ftxui CONFIG REQUIRED)
 
 # --- Definición del Ejecutable ---
-add_executable(NeeplyEnryptoring src/main.cpp)
+add_executable(NeeplyEnryptoring src/main.cpp
+        "src/ciphers/CesarEncryptor .h"
+        src/ciphers/VeginereEncryptor.h
+        src/ciphers/Prerequisites.h
+        src/ciphers/BinaryEncryptor.h)
 
 # Agregamos 'src' como un directorio de búsqueda para los headers.
 target_include_directories(NeeplyEnryptoring PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

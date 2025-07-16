@@ -35,13 +35,15 @@ public:
     {
         using namespace ftxui;
 
-        auto password_input = Input(&password_, "Escribe tu contraseña aquí");
+        auto password_input = Input(&password_, "Escribe tu clave aquí");
 
         auto encrypt_button = Button(" Cifrar ", [&] { ProcessFiles(true); }, ButtonOption::Animated(Color::Green));
         auto decrypt_button = Button(" Descifrar ", [&] { ProcessFiles(false); }, ButtonOption::Animated(Color::Red));
         auto refresh_button = Button(" Refrescar ", [&] { ScanFiles(); }, ButtonOption::Animated(Color::Blue));
 
-        std::vector<std::string> algorithm_entries = {"XOR", "DES"};
+        std::vector<std::string> algorithm_entries = {
+            "XOR", "DES", "Cesar", "Vigenere", "Codificación Binaria"
+        };
         auto algorithm_radiobox = Radiobox(&algorithm_entries, &selected_algorithm_);
 
         auto main_container = Container::Vertical({});
@@ -71,46 +73,39 @@ public:
             main_container->Add(cif_container);
 
             auto layout = vbox({
-                // --- TÍTULO ---
                 text("🔐 ENCRYPTOR TUI 🔐") | bold | color(Color::Cyan) | hcenter,
                 separatorLight(),
-
-                // --- PANEL PRINCIPAL ---
                 hbox({
-                    // --- COLUMNA DE ARCHIVOS ---
                     vbox({
                         window(text(" Archivos .txt para Cifrar ") | bold,
-                               txt_container->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10)) | color(Color::Green),
+                               txt_container->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10)) |
+                        color(Color::Green),
                         separator(),
                         window(text(" Archivos .cif para Descifrar ") | bold,
-                               cif_container->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10)) | color(Color::Red),
+                               cif_container->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10)) |
+                        color(Color::Red),
                     }) | flex,
-
                     separator(),
-
-                    // --- COLUMNA DE CONTROLES ---
                     vbox({
                         window(text(" Controles ") | bold,
-                            vbox({
-                                text("Contraseña:") | color(Color::Yellow),
-                                password_input->Render(),
-                                separator(),
-                                text("Algoritmo:") | color(Color::Yellow),
-                                algorithm_radiobox->Render() | hcenter,
-                            })
+                               vbox({
+                                   text("Clave:") | color(Color::Yellow),
+                                   password_input->Render(),
+                                   separator(),
+                                   text("Algoritmo:") | color(Color::Yellow),
+                                   algorithm_radiobox->Render() | hcenter,
+                               })
                         ),
                         separator(),
-                         window(text(" Acciones ") | bold,
-                            vbox({
-                                encrypt_button->Render() | hcenter,
-                                decrypt_button->Render() | hcenter,
-                                refresh_button->Render() | hcenter,
-                            })
+                        window(text(" Acciones ") | bold,
+                               vbox({
+                                   encrypt_button->Render() | hcenter,
+                                   decrypt_button->Render() | hcenter,
+                                   refresh_button->Render() | hcenter,
+                               })
                         )
                     }) | size(WIDTH, EQUAL, 40),
                 }),
-
-                // --- BARRA DE ESTADO ---
                 separatorLight(),
                 text("Estado: " + status_message_) | dim,
             }) | borderRounded | color(Color::Default);
@@ -187,25 +182,43 @@ private:
             std::string new_stem = stem.string() + "(" + std::to_string(counter) + ")";
             new_path = parent_path / (new_stem + ext.string());
             counter++;
-        } while (fs::exists(new_path));
+        }
+        while (fs::exists(new_path));
 
         return new_path;
     }
 
     void ProcessFiles(bool encrypt_mode)
     {
-        if (password_.empty())
+        if (password_.empty() && selected_algorithm_ != 4)
         {
-            status_message_ = "Error: La contraseña no puede estar vacía.";
+            status_message_ = "Error: La clave no puede estar vacía para este algoritmo.";
             return;
         }
 
-        auto algorithm_type = (selected_algorithm_ == 0) ? EncryptorFactory::Type::XOR : EncryptorFactory::Type::DES;
+        EncryptorFactory::Type algorithm_type;
+        switch (selected_algorithm_)
+        {
+        case 0: algorithm_type = EncryptorFactory::Type::XOR;
+            break;
+        case 1: algorithm_type = EncryptorFactory::Type::DES;
+            break;
+        case 2: algorithm_type = EncryptorFactory::Type::CESAR;
+            break;
+        case 3: algorithm_type = EncryptorFactory::Type::VIGENERE;
+            break;
+        case 4: algorithm_type = EncryptorFactory::Type::BINARY;
+            break;
+        default:
+            status_message_ = "Error: Algoritmo no válido seleccionado.";
+            return;
+        }
+
         auto encryptor = EncryptorFactory::createEncryptor(algorithm_type);
 
         if (!encryptor)
         {
-            status_message_ = "Error: No se pudo crear el algoritmo de cifrado.";
+            status_message_ = "Error: No se pudo crear el algoritmo de cifrado. (Puede que no esté implementado)";
             return;
         }
 
@@ -228,7 +241,7 @@ private:
             }
             status_message_ = "Cifrado completado. " + std::to_string(files_processed) + " archivos procesados.";
         }
-        else
+        else // Descifrado
         {
             for (size_t i = 0; i < cif_files_.size(); ++i)
             {

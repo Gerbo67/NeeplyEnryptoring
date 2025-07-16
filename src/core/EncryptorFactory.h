@@ -1,9 +1,15 @@
 #pragma once
 
 #include <memory>
+
 #include "core/IEncryptor.h"
+
+#include "ciphers/BinaryEncryptor.h"
 #include "ciphers/XorEncryptor.h"
 #include "ciphers/DesEncryptor.h"
+#include "ciphers/CesarEncryptor .h"
+#include "ciphers/VeginereEncryptor.h"
+
 
 /**
  * @class EncryptorFactory
@@ -12,9 +18,13 @@
  */
 class EncryptorFactory {
 public:
+    // Agregamos los nuevos tipos de cifrado
     enum class Type {
         XOR,
-        DES
+        DES,
+        CESAR,
+        VIGENERE,
+        BINARY
     };
 
     /**
@@ -28,6 +38,12 @@ public:
             return std::make_unique<XorEncryptor>();
         case Type::DES:
             return std::make_unique<DesEncryptor>();
+        case Type::CESAR:
+            return std::make_unique<CesarFileEncryptor>();
+        case Type::VIGENERE:
+            return std::make_unique<VigenereFileEncryptor>();
+        case Type::BINARY:
+            return std::make_unique<BinaryEncryptor>();
         default:
             return nullptr;
         }

@@ -1,9 +1,7 @@
 #pragma once
 
 #include "core/IEncryptor.h"
-#include <fstream>
-#include <iostream>
-#include <vector>
+#include "Prerequisites.h"
 
 /**
  * @class XorEncryptor

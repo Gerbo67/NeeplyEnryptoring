@@ -1,12 +1,6 @@
 #pragma once
 
-#include "core/IEncryptor.h"
-#include <fstream>
-#include <iostream>
-#include <vector>
-#include <string>
-#include <bitset>
-#include <array>
+#include "Prerequisites.h"
 
 namespace DES_Internal {
     // Tablas estándar de DES
