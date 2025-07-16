@@ -24,9 +24,40 @@ public:
         ScanFiles();
     }
 
+    void ShowSplashScreen()
+    {
+        using namespace ftxui;
+        using namespace std::chrono_literals;
+
+        auto screen = Screen::Create(Dimension::Full());
+
+        std::string text_to_display = "NeeplyEncryptoring";
+
+        for (int i = 0; i <= text_to_display.length(); ++i)
+        {
+            Element layout = vbox({
+                filler(),
+                text(text_to_display.substr(0, i)) | bold | color(Color::Cyan) | hcenter,
+                filler()
+            }) | border;
+
+            Render(screen, layout);
+
+            screen.Print();
+
+            std::this_thread::sleep_for(100ms);
+        }
+
+        std::this_thread::sleep_for(1500ms);
+    }
+
+
     void Run()
     {
         using namespace ftxui;
+
+        ShowSplashScreen();
+
 
         std::string placeholder_text = "Escribe tu clave aquí";
         auto password_input = Input(&password_, &placeholder_text);
@@ -88,9 +119,8 @@ public:
             main_container->Add(txt_container);
             main_container->Add(cif_container);
 
-
             auto layout = vbox({
-                text("🔐 ENCRYPTOR TUI 🔐") | bold | color(Color::Cyan) | hcenter,
+                text("🔒 NeeplyEncryptoring 🔒") | bold | color(Color::Cyan) | hcenter,
                 separatorLight(),
                 hbox({
                     vbox({
@@ -107,7 +137,7 @@ public:
                         window(text(" Controles ") | bold,
                                vbox({
                                    text("Clave:") | color(Color::Yellow),
-                                   password_renderer, // Usamos la versión renderizada
+                                   password_renderer,
                                    separator(),
                                    text("Algoritmo:") | color(Color::Yellow),
                                    algorithm_radiobox->Render() | hcenter,
@@ -133,6 +163,7 @@ public:
         auto screen = ScreenInteractive::TerminalOutput();
         screen.Loop(final_component);
     }
+
 
 private:
     const fs::path work_dir_ = "Enviroments";
